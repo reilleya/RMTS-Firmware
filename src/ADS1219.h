@@ -1,5 +1,4 @@
 #include <i2c_t3.h>
-#include <i2c_t3.h>
 #include <arduino.h>
 
 #define CONFIG_READ_DUCER 0b10100101
