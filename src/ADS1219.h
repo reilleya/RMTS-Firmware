@@ -1,8 +1,8 @@
 #include <i2c_t3.h>
 #include <arduino.h>
 
-#define CONFIG_READ_DUCER 0b10100101
-#define CONFIG_READ_LC 0b01100101
+#define CONFIG_READ_DUCER 0b10101001
+#define CONFIG_READ_LC 0b01101001
 #define CONFIG_ADDRESS 0x40
 
 class ADS1219 {
