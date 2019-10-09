@@ -1,5 +1,4 @@
 #include <arduino.h>
-#include "TeensyDelay.h"
 
 class PyroChannel {
     public:

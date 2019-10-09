@@ -11,7 +11,10 @@ void ADS1219::setup() {
     Wire.setDefaultTimeout(10000);
     pinMode(drdy, INPUT);
     pinMode(amp, OUTPUT);
+    digitalWrite(amp, LOW);
+    delay(250);
     digitalWrite(amp, HIGH);
+    delay(250);
 }
 
 void ADS1219::writeRegister(uint8_t value) {

@@ -1,8 +1,14 @@
 #include <i2c_t3.h>
 #include <arduino.h>
 
+// Read sensors at 20 Hz during setup for smoother data
+#define CONFIG_READ_DUCER_SETUP 0b10100001
+#define CONFIG_READ_LC_SETUP 0b01100001
+
+// Read sensors at 300 Hz during actual data collection
 #define CONFIG_READ_DUCER 0b10101001
 #define CONFIG_READ_LC 0b01101001
+
 #define CONFIG_ADDRESS 0x40
 
 class ADS1219 {
