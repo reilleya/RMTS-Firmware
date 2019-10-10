@@ -23,6 +23,7 @@ class RadioHandler {
         RadioHandler();
         void setup();
         void update();
+        void resetBuffers();
     
         bool validatePacket(packet* testPack);
 

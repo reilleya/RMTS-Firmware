@@ -31,6 +31,12 @@ void RadioHandler::update() {
     }
 }
 
+void RadioHandler::resetBuffers() {
+    Serial1.clear();
+    serialBufferIndex = 0;
+    resetPacketBuffer();
+}
+
 bool RadioHandler::validatePacket(packet* testPack) {
     uint8_t total = testPack->type + testPack->seqNum + testPack->checksum;
     for (uint8_t i = 0; i < PACKET_PAYLOAD_LENGTH; i++) {
