@@ -12,11 +12,16 @@ RadioHandler radio;
 
 systemState sysState = SETUP;
 
-
+// Setup state locals
 uint32_t setupForceReading = 0;
 uint32_t setupPresReading = 0;
 
+// Error state locals
+
+// Firing state locals
 uint32_t firingStateStarted;
+
+// Results state locals
 
 
 void setupStateUpdate() {

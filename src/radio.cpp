@@ -63,13 +63,19 @@ void RadioHandler::resetPacketBuffer() {
 }
 
 void RadioHandler::sendPacket(packet toSend) {
-    uint8_t total = toSend.type + toSend.seqNum;
-    for (uint8_t i = 0; i < PACKET_PAYLOAD_LENGTH; i++) {
-        total += toSend.payload[i];
-    }
-    toSend.checksum = 0 - total;
     packetConv.pack = toSend;
+    packetConv.pack.checksum = 0;
+    uint8_t total = 0;
     for (uint8_t i = 0; i < sizeof(packet); i++) {
+        total += packetConv.data[i];
+    }
+    packetConv.pack.checksum = 0 - total;
+    Serial1.write(RADIO_PREABLE_0);
+    Serial1.write(RADIO_PREABLE_1);
+    for (uint8_t i = 0; i < sizeof(packet); i++) {
+        if (packetConv.data[i] == RADIO_PREABLE_0 || packetConv.data[i] == RADIO_PREABLE_1 || packetConv.data[i] == RADIO_ESCAPE) {
+            Serial1.write(RADIO_ESCAPE);
+        }
         Serial1.write(packetConv.data[i]);
     }
 }

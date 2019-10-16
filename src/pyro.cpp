@@ -33,5 +33,5 @@ void PyroChannel::stopFiring() {
 }
 
 bool PyroChannel::getContinuity() {
-    return false; // Current boards lack this feature
+    return digitalRead(contPin);
 }

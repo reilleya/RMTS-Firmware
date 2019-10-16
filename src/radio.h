@@ -6,11 +6,15 @@
 
 #define PACKET_BUFFER_LENGTH 8
 
+#define RADIO_PREABLE_0 0xAA
+#define RADIO_PREABLE_1 0xBB
+#define RADIO_ESCAPE 0x11
+
 typedef struct radioPacket {
     uint8_t type;
-    uint8_t seqNum;
-    uint8_t payload[PACKET_PAYLOAD_LENGTH];
     uint8_t checksum;
+    uint16_t seqNum;
+    uint8_t payload[PACKET_PAYLOAD_LENGTH];
 } packet;
 
 typedef union radioPacketUnion {

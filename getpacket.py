@@ -1,69 +1,73 @@
 import serial, time
 
-message = [
-    2,
-    0,
-    0, 0, 0, 1, 0, 4, 0, 0,
-    256 - (2+1+4)
-]
-
-PACKET_SIZE = 11
-
-buff = []
-
 def prepPacket(packType, seq, payload):
     pack = [packType, seq] + payload
     pack.append((256 - sum(pack)) % 256)
     return bytearray(pack)
 
-def checkPacket(packet):
-    return (sum(packet) % 256) == 0 and len(packet) == PACKET_SIZE
-
-def interpretADCReading(payload, startIndex):
-    low = payload[startIndex]
-    mid = payload[startIndex + 1]
-    high = payload[startIndex + 2]
-    return (low) + (mid * (2**8)) + (high * (2**16))
-
 class radioPacket():
     def __init__(self, data):
-        if checkPacket(data):
-            self.type = data[0]
-            self.seqNum = data[1]
-            self.payload = data[2:10]
-            self.checksum = data[10]
-            if self.type == 0:
-                self.force = interpretADCReading(self.payload, 0)
-                self.pressure = interpretADCReading(self.payload, 3)
-        else:
-            raise ValueError('Invalid packet data')
+        self.type = data[0]
+        self.checksum = data[1]
+        self.seqNum = data[2:4]
+        self.payload = data[4:12]
+
+    def interpretADCReading(self, startIndex):
+        low = self.payload[startIndex]
+        mid = self.payload[startIndex + 1]
+        high = self.payload[startIndex + 2]
+        return (low) + (mid * (2**8)) + (high * (2**16))
 
 
 class setupPacket(radioPacket):
     def __init__(self, data):
         super().__init__(data)
+        self.force = self.interpretADCReading(0)
+        self.pressure = self.interpretADCReading(3)
+        self.continuity = bool(self.payload[6])
+
+    def __str__(self):
+        out = "Force: {}, Pressure: {}, Continuity: {}".format(self.force, self.pressure, self.continuity)
+        return out
 
 
 class RadioManager():
+    PACKET_SIZE = 12
+    PREAMBLE = [0xAA, 0xBB]
+    ESCAPE = 0x11
+
     def __init__(self, port):
         self.serialBuffer = []
         self.port = port
 
-    def update(self):
-        if self.port.in_waiting > 0:
-            data = self.port.read(self.port.in_waiting)
-            data = [byte for byte in data]
-            self.serialBuffer += data
-            if len(self.serialBuffer) >= PACKET_SIZE:
-                for i in range(0, len(self.serialBuffer) - PACKET_SIZE):
-                    testPack = self.serialBuffer[i:i + 11]
-                    if checkPacket(testPack):
-                        self.serialBuffer = self.serialBuffer[i + 11:]
-                        pack = radioPacket(testPack)
-                        print("Force: " + str(pack.force) + ", Pressure: " + str(pack.pressure))
-                
+    @staticmethod
+    def checkPacket(packet):
+        checksum = (sum(packet) % 256) == 0
+        rightLength = len(packet) == RadioManager.PACKET_SIZE
+        return checksum and rightLength
 
-with serial.Serial('COM20', 9600) as ser:
+    def run(self):
+        escape = False
+        packetBuff = []
+        inPreamble = False
+        inPacket = False
+        while True:
+            b = int.from_bytes(self.port.read(), 'big')
+            if b == RadioManager.PREAMBLE[0] and not escape:
+                inPreamble = True
+                inPacket = False
+            elif b == RadioManager.PREAMBLE[1] and not escape and inPreamble:
+                packetBuff = []
+                inPacket = True
+            elif inPacket and (b != RadioManager.ESCAPE or escape):
+                packetBuff.append(b)
+                if self.checkPacket(packetBuff):
+                    pack = setupPacket(packetBuff)
+                    print(pack)
+                    inPacket = False
+            escape = b == RadioManager.ESCAPE
+
+
+with serial.Serial('/dev/ttyUSB0', 9600) as ser:
     rm = RadioManager(ser)
-    while True:
-        rm.update()
+    rm.run()

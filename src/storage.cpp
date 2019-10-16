@@ -1,4 +1,5 @@
 #include "storage.h"
+#include "constants.h"
 
 Storage::Storage() {
 
@@ -6,14 +7,14 @@ Storage::Storage() {
 
 
 void Storage::setup() {
-    SPI.setMOSI(11);
-    SPI.setSCK(13);
-    SPI.setMISO(12);
-    SPI.setCS(10);
+    SPI.setMOSI(SD_MOSI);
+    SPI.setSCK(SD_SCK);
+    SPI.setMISO(SD_MISO);
+    SPI.setCS(SD_CS);
 
     currentFrame = 0;
 
-    if (!SD.begin(10)) {
+    if (!SD.begin(SD_CS)) {
         Serial.println("Card failed, or not present");
     }
 }
@@ -54,7 +55,7 @@ void Storage::dumpToSerial() {
 }
 
 void Storage::dumpToSD() {
-    File dataFile = SD.open("datalog.txt", FILE_WRITE);
+    dataFile = SD.open("datalog.txt", FILE_WRITE);
     if (dataFile) {
         for (uint16_t index = 0; index < NUM_FRAMES; index++) {
             uint32_t time = cache[index] & TIME_MASK;

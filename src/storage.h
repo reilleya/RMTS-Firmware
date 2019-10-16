@@ -23,4 +23,5 @@ class Storage {
     private:
         uint16_t currentFrame;
         uint64_t cache[NUM_FRAMES];
+        File dataFile;
 };
