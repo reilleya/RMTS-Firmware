@@ -11,23 +11,29 @@ void RadioHandler::setup() {
 
 void RadioHandler::update() {
     while (Serial1.available() > 0) {
-        serialBuffer[serialBufferIndex] = Serial1.read();
-        serialBufferIndex++;
-        if (serialBufferIndex == SERIAL_BUFFER_LENGTH) { // Reset serial buffer if it fills
+        uint8_t b = Serial1.read();
+        if (b == RADIO_PREABLE_0 and not escape) {
+            inPreamble = true;
+            inPacket = false;
+        }
+        else if (b == RADIO_PREABLE_1 and not escape and inPreamble) {
+            inPacket = true;
             serialBufferIndex = 0;
         }
-    }
-    if (serialBufferIndex >= sizeof(packet)) {
-        memcpy(&packetConv.data, &serialBuffer + serialBufferIndex - sizeof(packet), sizeof(packet));
-        if (validatePacket(&packetConv.pack)) {
-            Serial.println("Valid packet!");
-            serialBufferIndex = 0;
-            packetBuffer[packetBufferIndex] = packetConv.pack;
-            packetBufferIndex++;
+        else if (inPacket and (b != RADIO_ESCAPE or escape)) {
+            packetConv.data[serialBufferIndex] = b;
+            serialBufferIndex++;
+            if (serialBufferIndex == sizeof(packet)) {
+                if (validatePacket(&packetConv.pack)) {
+                    serialBufferIndex = 0;
+                    packetBuffer[packetBufferIndex] = packetConv.pack;
+                    packetBufferIndex++;
+                }
+                serialBufferIndex = 0;
+                inPacket = false;
+            }
         }
-        else {
-            Serial.println("Invalid packet!");
-        }
+        escape = b == RADIO_ESCAPE;
     }
 }
 

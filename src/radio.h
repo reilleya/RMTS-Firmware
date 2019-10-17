@@ -2,8 +2,6 @@
 
 #define PACKET_PAYLOAD_LENGTH 8
 
-#define SERIAL_BUFFER_LENGTH 128
-
 #define PACKET_BUFFER_LENGTH 8
 
 #define RADIO_PREABLE_0 0xAA
@@ -38,10 +36,14 @@ class RadioHandler {
         void sendPacket(packet toSend);
 
     private:
-        uint8_t serialBuffer[SERIAL_BUFFER_LENGTH];
         uint8_t serialBufferIndex;
         packetUnion packetConv;
 
         packet packetBuffer[PACKET_BUFFER_LENGTH];
         uint8_t packetBufferIndex;
+
+        // Packet parser state
+        bool escape = false;
+        bool inPreamble = false;
+        bool inPacket = false;
 };
