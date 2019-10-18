@@ -2,7 +2,7 @@
 #include "constants.h"
 
 Storage::Storage() {
-
+    status = ERROR_SD_UNINITIALIZED;
 }
 
 
@@ -16,7 +16,29 @@ void Storage::setup() {
 
     if (!SD.begin(SD_CS)) {
         Serial.println("Card failed, or not present");
+        status = ERROR_SD_MISSING;
+        return;
     }
+    for (uint8_t fileNum = 0; fileNum <= 255; fileNum++) {
+        filename = String(fileNum) + ".txt";
+        if (!SD.exists(filename.c_str())) {
+            break;
+        }
+        if (fileNum == 255) {
+            status = ERROR_SD_TOO_MANY_LOGS;
+            return;
+        }
+    }
+    dataFile = SD.open(filename.c_str(), FILE_WRITE);
+    if (!dataFile) {
+        status = ERROR_SD_UNWRITABLE;
+        return;
+    }
+    status = ERROR_SD_OK;
+}
+
+uint8_t Storage::getStatus() {
+    return status;
 }
 
 void Storage::addTime(uint32_t time) {
@@ -54,23 +76,21 @@ void Storage::dumpToSerial() {
     Serial.println(lower, HEX);
 }
 
-void Storage::dumpToSD() {
-    dataFile = SD.open("datalog.txt", FILE_WRITE);
-    if (dataFile) {
-        for (uint16_t index = 0; index < NUM_FRAMES; index++) {
-            uint32_t time = cache[index] & TIME_MASK;
-            uint32_t force = (cache[index] & FORCE_MASK) >> 16;
-            uint32_t pressure = (cache[index] & PRES_MASK) >> 40;
+uint64_t Storage::getFrame(uint16_t index) {
+    return cache[index];
+}
 
-            dataFile.print(time);
-            dataFile.print(",");
-            dataFile.print(force);
-            dataFile.print(",");
-            dataFile.println(pressure);
-        }
-        dataFile.close();
+void Storage::dumpToSD() {
+    for (uint16_t index = 0; index < NUM_FRAMES; index++) {
+        uint32_t time = cache[index] & TIME_MASK;
+        uint32_t force = (cache[index] & FORCE_MASK) >> 16;
+        uint32_t pressure = (cache[index] & PRES_MASK) >> 40;
+
+        dataFile.print(time);
+        dataFile.print(",");
+        dataFile.print(force);
+        dataFile.print(",");
+        dataFile.println(pressure);
     }
-    else {
-        Serial.println("Unable to make file!");
-    }
+    dataFile.close();
 }

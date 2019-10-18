@@ -12,6 +12,7 @@
 #define SD_MISO 12
 #define SD_CS 10
 
+
 // States
 typedef enum STATE {
     SETUP,
@@ -20,10 +21,24 @@ typedef enum STATE {
     ERROR
 } systemState;
 
-// Errors
 
+// Errors
+#define ERROR_SD_OK 0 // No SD error
 #define ERROR_SD_MISSING 1 // No SD card detected
 #define ERROR_SD_UNWRITABLE 2 // Unable to create a file on the SD card
-#define ERROR_SD_TOO_MANY_LOG 4 // More than 256 log files already exist on the card
+#define ERROR_SD_TOO_MANY_LOGS 3 // More than 256 log files already exist on the card
+#define ERROR_SD_UNINITIALIZED 255
 
-#define ERROR_ADC_SELFCHECK 8 // Writing to a register on the ADC and reading it back gave the wrong result
+#define ERROR_ADC_OK 0 // No ADC error
+#define ERROR_ADC_SELFCHECK 1 // Writing to a register on the ADC and reading it back gave the wrong result
+
+#define ERROR_RADIO_OK 0
+#define ERROR_RADIO_BAD_FIRE 1
+
+
+// Packets
+#define PACKET_SETUP 0
+#define PACKET_ERROR 1
+#define PACKET_RESULTS 2
+
+#define PACKET_FIRE 128

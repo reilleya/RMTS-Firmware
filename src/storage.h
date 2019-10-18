@@ -12,15 +12,20 @@ class Storage {
     public:
         Storage();
         void setup();
+        uint8_t getStatus();
+
         void addTime(uint32_t time);
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
         bool incrementFrame();
 
         void dumpToSerial();
+        uint64_t getFrame(uint16_t index);
         void dumpToSD();
 
     private:
+        uint8_t status;
+        String filename;
         uint16_t currentFrame;
         uint64_t cache[NUM_FRAMES];
         File dataFile;

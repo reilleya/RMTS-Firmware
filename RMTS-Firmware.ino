@@ -25,6 +25,12 @@ uint32_t firingStateStarted;
 
 
 void setupStateUpdate() {
+    if (hasError()) {
+        sysState = ERROR;
+        Serial.println("Entering error state");
+        return;
+    }
+
     adc.writeRegister(CONFIG_READ_LC_SETUP);
     adc.requestReading();
 
@@ -38,7 +44,7 @@ void setupStateUpdate() {
     setupPresReading = adc.waitForReading();
 
     packet pack;
-    pack.type = 0;
+    pack.type = PACKET_SETUP;
     pack.seqNum = 0;
     pack.payload[0] = (uint8_t) setupForceReading;
     pack.payload[1] = (uint8_t) (setupForceReading >> 8);
@@ -52,11 +58,8 @@ void setupStateUpdate() {
 
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
-        Serial.println(pack.type);
-        Serial.println(pack.seqNum);
-        Serial.println("-------");
-        if (pack.type == 128) {
-            Serial.println("Firing!");
+        if (pack.type == PACKET_FIRE) {
+            Serial.println("Entering fire state");
             sysState = FIRING;
             firingStateStarted = millis();
             pyro.fire();
@@ -84,19 +87,43 @@ void firingStateUpdate() {
 
     if (store.incrementFrame()) { // Returns true if the buffer is full
         sysState = FINISHED;
+        Serial.println("Entering finished state");
         store.dumpToSD();
     }
 }
 
 
 void finishedStateUpdate() {
-    Serial.println("Done!");
-    delay(100);
+    uint64_t frame = 0;
+    for(uint16_t i = 0; i < NUM_FRAMES; i++) {
+        packet pack;
+        pack.type = PACKET_RESULTS;
+        pack.seqNum = i;
+        frame = store.getFrame(i);
+        memcpy(pack.payload, &frame, sizeof(uint64_t));
+        radio.sendPacket(pack);
+    }
 }
 
+bool hasError() {
+    return store.getStatus() != ERROR_SD_OK;
+}
 
 void errorStateUpdate() {
+    packet pack;
+    pack.type = PACKET_ERROR;
+    pack.seqNum = 0;
+    pack.payload[0] = store.getStatus();
+    pack.payload[1] = 0;
+    pack.payload[2] = 0;
+    pack.payload[3] = 0;
+    pack.payload[4] = 0;
+    pack.payload[5] = 0;
+    pack.payload[6] = 0;
+    pack.payload[7] = 0;
+    radio.sendPacket(pack);
 
+    delay(100);
 }
 
 
