@@ -1,4 +1,5 @@
 #include "ads1219.h"
+#include "constants.h"
 
 ADS1219::ADS1219(uint8_t address, uint8_t dataReadyPin, uint8_t ampPin) {
     addr = address;
@@ -14,7 +15,21 @@ void ADS1219::setup() {
     digitalWrite(amp, LOW);
     delay(250);
     digitalWrite(amp, HIGH);
-    delay(250);
+    // Perform a self-check of the ADS1219
+    writeRegister(CONFIG_READ_DUCER_SETUP);
+    Wire.beginTransmission(addr);
+    Wire.write(0x20);
+    Wire.endTransmission();
+    Wire.requestFrom(addr, (uint8_t) 1);
+    if (Wire.read() != CONFIG_READ_DUCER_SETUP) {
+        status = ERROR_ADC_SELF_CHECK;
+        return;
+    }
+    status = ERROR_ADC_OK;
+}
+
+uint8_t ADS1219::getStatus() {
+    return status;
 }
 
 void ADS1219::writeRegister(uint8_t value) {

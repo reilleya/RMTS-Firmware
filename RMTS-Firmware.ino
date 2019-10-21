@@ -106,7 +106,7 @@ void finishedStateUpdate() {
 }
 
 bool hasError() {
-    return store.getStatus() != ERROR_SD_OK;
+    return store.getStatus() != ERROR_SD_OK or adc.getStatus() != ERROR_ADC_OK;
 }
 
 void errorStateUpdate() {
@@ -114,7 +114,7 @@ void errorStateUpdate() {
     pack.type = PACKET_ERROR;
     pack.seqNum = 0;
     pack.payload[0] = store.getStatus();
-    pack.payload[1] = 0;
+    pack.payload[1] = adc.getStatus();
     pack.payload[2] = 0;
     pack.payload[3] = 0;
     pack.payload[4] = 0;

@@ -15,6 +15,8 @@ class ADS1219 {
     public:
         ADS1219(uint8_t address, uint8_t dataReadyPin, uint8_t ampPin);
         void setup();
+        uint8_t getStatus();
+
         void writeRegister(uint8_t value);
         void requestReading();
         uint32_t getReading();
@@ -24,4 +26,6 @@ class ADS1219 {
         uint8_t addr;
         uint8_t drdy;
         uint8_t amp;
+
+        uint8_t status;
 };

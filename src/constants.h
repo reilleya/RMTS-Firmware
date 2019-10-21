@@ -30,7 +30,8 @@ typedef enum STATE {
 #define ERROR_SD_UNINITIALIZED 255
 
 #define ERROR_ADC_OK 0 // No ADC error
-#define ERROR_ADC_SELFCHECK 1 // Writing to a register on the ADC and reading it back gave the wrong result
+#define ERROR_ADC_SELF_CHECK 1 // Writing to a register on the ADC and reading it back gave the wrong result
+#define ERROR_ADC_UNINITIALIZED 255
 
 #define ERROR_RADIO_OK 0
 #define ERROR_RADIO_BAD_FIRE 1
