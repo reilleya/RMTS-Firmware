@@ -3,6 +3,7 @@
 
 Storage::Storage() {
     status = ERROR_SD_UNINITIALIZED;
+    lastFiringFrame = 0;
 }
 
 
@@ -69,6 +70,22 @@ bool Storage::incrementFrame() {
     return currentFrame >= NUM_FRAMES;
 }
 
+void Storage::processData() {
+    uint32_t maxForce = 0;
+    uint32_t force;
+    for (uint16_t i = 0; i < NUM_FRAMES; i++) {
+        force = (cache[i] & FORCE_MASK) >> 16;
+        if (force > maxForce) maxForce = force;
+    }
+    for (uint16_t i = NUM_FRAMES; i > 0; i--) {
+        force = (cache[i] & FORCE_MASK) >> 16;
+        if (force * 100 > maxForce) {
+            lastFiringFrame = i;
+            break;
+        }
+    }
+}
+
 void Storage::dumpToSerial() {
     uint32_t lower = (uint32_t) cache[currentFrame];
     uint32_t upper = (uint32_t) (cache[currentFrame] >> 32);
@@ -78,6 +95,10 @@ void Storage::dumpToSerial() {
 
 uint64_t Storage::getFrame(uint16_t index) {
     return cache[index];
+}
+
+uint16_t Storage::getNumFrames() {
+    return lastFiringFrame;
 }
 
 void Storage::dumpToSD() {

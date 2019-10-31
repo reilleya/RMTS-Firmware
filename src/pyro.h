@@ -2,10 +2,10 @@
 
 class PyroChannel {
     public:
-        PyroChannel(uint8_t firingPin, uint8_t continuityPin, uint32_t duration);
+        PyroChannel(uint8_t firingPin, uint8_t continuityPin);
         void setup();
         void update();
-        void fire();
+        void fire(uint32_t fireDuration);
         void stopFiring();
         bool getContinuity();
     

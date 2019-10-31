@@ -5,7 +5,7 @@
 #include "src/constants.h"
 
 ADS1219 adc(ADC_ADDRESS, ADC_DRDY_PIN, ADC_AMP_PIN);
-PyroChannel pyro(PYRO_FIRE_PIN, PYRO_CONT_PIN, 100);
+PyroChannel pyro(PYRO_FIRE_PIN, PYRO_CONT_PIN);
 Storage store;
 RadioHandler radio;
 
@@ -21,7 +21,11 @@ uint32_t setupPresReading = 0;
 // Firing state locals
 uint32_t firingStateStarted;
 
+uint32_t recordingDuration;
+uint32_t currentTime;
+
 // Results state locals
+uint16_t resultsOffset = 0;
 
 
 void setupStateUpdate() {
@@ -59,10 +63,14 @@ void setupStateUpdate() {
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
         if (pack.type == PACKET_FIRE) {
-            Serial.println("Entering fire state");
+            recordingDuration = (uint16_t) pack.payload[0] + ((uint16_t) pack.payload[1] << 8);
+            Serial.print("Entering fire state for ");
+            Serial.print(recordingDuration);
+            Serial.print(" ms");
             sysState = FIRING;
             firingStateStarted = millis();
-            pyro.fire();
+            pyro.fire(100);
+            break;
         }
     }
 }
@@ -72,7 +80,8 @@ void firingStateUpdate() {
     adc.writeRegister(CONFIG_READ_LC);
     adc.requestReading();
 
-    store.addTime(millis() - firingStateStarted);
+    currentTime = millis() - firingStateStarted;
+    store.addTime(currentTime);
     pyro.update();
 
     setupForceReading = adc.waitForReading();
@@ -85,17 +94,18 @@ void firingStateUpdate() {
     setupPresReading = adc.waitForReading();
     store.addPressure(setupPresReading);
 
-    if (store.incrementFrame()) { // Returns true if the buffer is full
+    if (store.incrementFrame() || currentTime > recordingDuration) { // Returns true if the buffer is full
         sysState = FINISHED;
         Serial.println("Entering finished state");
         store.dumpToSD();
+        store.processData();
     }
 }
 
 
 void finishedStateUpdate() {
     uint64_t frame = 0;
-    for(uint16_t i = 0; i < NUM_FRAMES; i++) {
+    for(uint16_t i = resultsOffset; i < store.getNumFrames(); i += 10) {
         packet pack;
         pack.type = PACKET_RESULTS;
         pack.seqNum = i;
@@ -103,6 +113,8 @@ void finishedStateUpdate() {
         memcpy(pack.payload, &frame, sizeof(uint64_t));
         radio.sendPacket(pack);
     }
+    resultsOffset += 1;
+    if (resultsOffset == 10) resultsOffset = 0;
 }
 
 bool hasError() {

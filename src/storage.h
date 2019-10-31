@@ -6,7 +6,7 @@
 #define FORCE_MASK 0x000000FFFFFF0000
 #define PRES_MASK  0xFFFFFF0000000000
 
-#define NUM_FRAMES 1000
+#define NUM_FRAMES 4000
 
 class Storage {
     public:
@@ -19,8 +19,10 @@ class Storage {
         void addPressure(uint32_t pressure);
         bool incrementFrame();
 
+        void processData();
         void dumpToSerial();
         uint64_t getFrame(uint16_t index);
+        uint16_t getNumFrames();
         void dumpToSD();
 
     private:
@@ -29,4 +31,6 @@ class Storage {
         uint16_t currentFrame;
         uint64_t cache[NUM_FRAMES];
         File dataFile;
+
+        uint16_t lastFiringFrame;
 };

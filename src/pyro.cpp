@@ -1,9 +1,8 @@
 #include "pyro.h"
 
-PyroChannel::PyroChannel(uint8_t firingPin, uint8_t continuityPin, uint32_t fireDuration) {
+PyroChannel::PyroChannel(uint8_t firingPin, uint8_t continuityPin) {
     firePin = firingPin;
     contPin = continuityPin;
-    duration = fireDuration;
     firing = false;
 }
 
@@ -21,7 +20,8 @@ void PyroChannel::update() {
     }
 }
 
-void PyroChannel::fire() {
+void PyroChannel::fire(uint32_t fireDuration) {
+    duration = fireDuration;
     digitalWrite(firePin, HIGH);
     startedAt = millis();
     firing = true;
