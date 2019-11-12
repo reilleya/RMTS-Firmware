@@ -43,3 +43,4 @@ typedef enum STATE {
 #define PACKET_RESULTS 2
 
 #define PACKET_FIRE 128
+#define PACKET_STOP 129

@@ -19,8 +19,9 @@ uint32_t setupPresReading = 0;
 // Error state locals
 
 // Firing state locals
+bool recordingCanceled = false;
 uint32_t firingStateStarted;
-
+uint32_t firingDuration;
 uint32_t recordingDuration;
 uint32_t currentTime;
 
@@ -57,19 +58,21 @@ void setupStateUpdate() {
     pack.payload[4] = (uint8_t) (setupPresReading >> 8);
     pack.payload[5] = (uint8_t) (setupPresReading >> 16);
     pack.payload[6] = (uint8_t) pyro.getContinuity();
-    pack.payload[7] = 0;
     radio.sendPacket(pack);
 
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
         if (pack.type == PACKET_FIRE) {
             recordingDuration = (uint16_t) pack.payload[0] + ((uint16_t) pack.payload[1] << 8);
+            firingDuration = (uint16_t) pack.payload[2] + ((uint16_t) pack.payload[3] << 8);
             Serial.print("Entering fire state for ");
             Serial.print(recordingDuration);
-            Serial.print(" ms");
+            Serial.print(" ms, firing for ");
+            Serial.print(firingDuration);
+            Serial.println(" ms");
             sysState = FIRING;
             firingStateStarted = millis();
-            pyro.fire(100);
+            pyro.fire(firingDuration);
             break;
         }
     }
@@ -89,12 +92,20 @@ void firingStateUpdate() {
     adc.requestReading();
 
     store.addForce(setupForceReading);
-    radio.resetBuffers();
+    radio.update();
+    while (radio.available() > 0) {
+        packet pack = radio.readPacket();
+        if (pack.type == PACKET_STOP) {
+            recordingCanceled = true;
+            Serial.println("Received stop packet");
+            break;
+        }
+    }
 
     setupPresReading = adc.waitForReading();
     store.addPressure(setupPresReading);
 
-    if (store.incrementFrame() || currentTime > recordingDuration) { // Returns true if the buffer is full
+    if (store.incrementFrame() || currentTime > recordingDuration || recordingCanceled) {
         sysState = FINISHED;
         Serial.println("Entering finished state");
         store.dumpToSD();
@@ -127,12 +138,6 @@ void errorStateUpdate() {
     pack.seqNum = 0;
     pack.payload[0] = store.getStatus();
     pack.payload[1] = adc.getStatus();
-    pack.payload[2] = 0;
-    pack.payload[3] = 0;
-    pack.payload[4] = 0;
-    pack.payload[5] = 0;
-    pack.payload[6] = 0;
-    pack.payload[7] = 0;
     radio.sendPacket(pack);
 
     delay(100);
