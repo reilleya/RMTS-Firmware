@@ -21,6 +21,9 @@ class ADS1219 {
         void requestReading();
         uint32_t getReading();
         uint32_t waitForReading();
+
+        void startCal();
+        void endCal();
     
     private:
         uint8_t addr;

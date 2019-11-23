@@ -75,6 +75,14 @@ void setupStateUpdate() {
             pyro.fire(firingDuration);
             break;
         }
+        if (pack.type == PACKET_CAL_START) {
+            Serial.println("Starting cal");
+            adc.startCal();
+        }
+        if (pack.type == PACKET_CAL_STOP) {
+            Serial.println("Stopping cal");
+            adc.endCal();
+        }
     }
 }
 

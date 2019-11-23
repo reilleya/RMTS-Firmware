@@ -12,8 +12,10 @@ void ADS1219::setup() {
     Wire.setDefaultTimeout(10000);
     pinMode(drdy, INPUT);
     pinMode(amp, OUTPUT);
+    digitalWrite(amp, HIGH);
+    delay(1000);
     digitalWrite(amp, LOW);
-    delay(250);
+    delay(100);
     digitalWrite(amp, HIGH);
     // Perform a self-check of the ADS1219
     writeRegister(CONFIG_READ_DUCER_SETUP);
@@ -61,4 +63,12 @@ uint32_t ADS1219::getReading() {
 uint32_t ADS1219::waitForReading() {
     while (digitalRead(drdy) == HIGH);
     return getReading();
+}
+
+void ADS1219::startCal() {
+    digitalWrite(amp, LOW);
+}
+
+void ADS1219::endCal() {
+    digitalWrite(amp, HIGH);
 }
