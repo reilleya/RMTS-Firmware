@@ -18,6 +18,7 @@ class Storage {
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
         bool incrementFrame();
+        uint16_t getCurrentFrame();
 
         void processData();
         void dumpToSerial();

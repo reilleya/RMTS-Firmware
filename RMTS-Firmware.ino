@@ -72,7 +72,6 @@ void setupStateUpdate() {
             Serial.println(" ms");
             sysState = FIRING;
             firingStateStarted = millis();
-            pyro.fire(firingDuration);
             break;
         }
         if (pack.type == PACKET_CAL_START) {
@@ -93,6 +92,7 @@ void firingStateUpdate() {
 
     currentTime = millis() - firingStateStarted;
     store.addTime(currentTime);
+    if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
     pyro.update();
 
     setupForceReading = adc.waitForReading();

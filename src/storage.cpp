@@ -101,6 +101,10 @@ uint16_t Storage::getNumFrames() {
     return lastFiringFrame;
 }
 
+uint16_t Storage::getCurrentFrame() {
+    return currentFrame;
+}
+
 void Storage::dumpToSD() {
     for (uint16_t index = 0; index < NUM_FRAMES; index++) {
         uint32_t time = cache[index] & TIME_MASK;
