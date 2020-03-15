@@ -25,9 +25,10 @@ class ADS1219 {
         void startCal();
         void endCal();
     
+        uint8_t drdy;
+
     private:
         uint8_t addr;
-        uint8_t drdy;
         uint8_t amp;
 
         uint8_t status;

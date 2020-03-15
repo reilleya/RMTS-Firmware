@@ -43,47 +43,73 @@ uint8_t Storage::getStatus() {
 }
 
 void Storage::addTime(uint32_t time) {
-    cache.cache[currentFrame] &= ~TIME_MASK; // Zero out the time section
     uint64_t conv = (uint64_t) time;
     conv &= TIME_MASK;
-    cache.cache[currentFrame] |= conv;
+    if (fillingA) {
+        cacheA.cache[currentFrame] &= ~TIME_MASK; // Zero out the time section
+        cacheA.cache[currentFrame] |= conv;
+    } else {
+        cacheB.cache[currentFrame] &= ~TIME_MASK; // Zero out the time section
+        cacheB.cache[currentFrame] |= conv;
+    }
 }
 
 void Storage::addForce(uint32_t force) {
-    cache.cache[currentFrame] &= ~FORCE_MASK; // Zero out the force section
     uint64_t conv = (uint64_t) force;
     conv <<= 16;
     conv &= FORCE_MASK; // Drop any value in the MSB of the word
-    cache.cache[currentFrame] |= conv;
+    if (fillingA) {
+        cacheA.cache[currentFrame] &= ~FORCE_MASK; // Zero out the force section
+        cacheA.cache[currentFrame] |= conv;
+    } else {
+        cacheB.cache[currentFrame] &= ~FORCE_MASK; // Zero out the force section
+        cacheB.cache[currentFrame] |= conv;
+    }
 }
 
 void Storage::addPressure(uint32_t pressure) {
-    cache.cache[currentFrame] &= ~PRES_MASK; // Zero out the pressure section
     uint64_t conv = (uint64_t) pressure;
     conv <<= 40;
     conv &= PRES_MASK; // Shouldn't be required because the shift pushes it to the MSB
-    cache.cache[currentFrame] |= conv;
+    if (fillingA) {
+        cacheA.cache[currentFrame] &= ~PRES_MASK; // Zero out the pressure section
+        cacheA.cache[currentFrame] |= conv;
+    } else {
+        cacheB.cache[currentFrame] &= ~PRES_MASK; // Zero out the pressure section
+        cacheB.cache[currentFrame] |= conv;
+    }
 }
 
 void Storage::incrementFrame() {
     currentFrame++;
     if (currentFrame == NUM_FRAMES) {
-        dataFile.write(cache.byteCache, NUM_FRAMES * 8);
-        dataFile.flush();
+        fillingA = !fillingA;
+        writing = true;
         currentFrame = 0;
-        currentChunk += 1;
+    }
+}
+
+void Storage::update() {
+    if (writing) {
+        if (fillingA) {
+            dataFile.write(cacheB.byteCache, NUM_FRAMES * 8); // Write B while we are filling A
+        } else {
+            dataFile.write(cacheA.byteCache, NUM_FRAMES * 8); // Write A while B is filling
+        }
+        dataFile.flush();
+        writing = false;
     }
 }
 
 void Storage::dumpToSerial() {
-    uint32_t lower = (uint32_t) cache.cache[currentFrame];
-    uint32_t upper = (uint32_t) (cache.cache[currentFrame] >> 32);
+    uint32_t lower = (uint32_t) cacheA.cache[currentFrame]; // UPDATE
+    uint32_t upper = (uint32_t) (cacheA.cache[currentFrame] >> 32); // UPDATE
     Serial.print(upper, HEX);
     Serial.println(lower, HEX);
 }
 
 uint64_t Storage::getFrame(uint16_t index) {
-    return cache.cache[index];
+    return cacheA.cache[index]; // UPDATE
 }
 
 uint16_t Storage::getNumFrames() {

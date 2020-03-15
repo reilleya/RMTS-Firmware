@@ -25,6 +25,8 @@ class Storage {
         void incrementFrame();
         uint16_t getCurrentFrame();
 
+        void update();
+
         void processData();
         void dumpToSerial();
         uint64_t getFrame(uint16_t index);
@@ -41,6 +43,9 @@ class Storage {
         uint16_t currentFrame;
         uint16_t currentChunk;
 
-        cacheUnion cache;
+        cacheUnion cacheA;
+        cacheUnion cacheB;
+        bool fillingA = true;
 
+        bool writing = false;
 };

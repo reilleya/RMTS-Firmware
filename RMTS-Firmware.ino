@@ -19,6 +19,7 @@ uint32_t setupPresReading = 0;
 // Error state locals
 
 // Firing state locals
+bool forceReq = true; // If false, it must have been pressure
 bool recordingCanceled = false;
 uint32_t firingStateStarted;
 uint32_t firingDuration;
@@ -27,6 +28,32 @@ uint32_t currentTime;
 
 // Results state locals
 uint16_t resultsOffset = 0;
+
+void dataReady() {
+    cli();
+    if (sysState != FIRING) {
+        sei();
+        return;
+    }
+    if (forceReq) {
+        Serial.print("Load cell: ");
+        Serial.println(adc.getReading());
+        //store.addForce(adc.getReading());
+        //store.addTime(millis() - firingStateStarted);
+        forceReq = false;
+        adc.writeRegister(CONFIG_READ_DUCER_SETUP);
+        adc.requestReading();
+    } else {
+        Serial.print("Ducer: ");
+        Serial.println(adc.getReading());
+        //store.addForce(adc.getReading());
+        forceReq = true;
+        //store.incrementFrame()
+        adc.writeRegister(CONFIG_READ_LC_SETUP);
+        adc.requestReading();
+    }
+    sei();
+}
 
 
 void setupStateUpdate() {
@@ -72,6 +99,8 @@ void setupStateUpdate() {
             Serial.println(" ms");
             sysState = FIRING;
             firingStateStarted = millis();
+            adc.writeRegister(CONFIG_READ_DUCER);
+            adc.requestReading();
             break;
         }
         if (pack.type == PACKET_CAL_START) {
@@ -87,6 +116,12 @@ void setupStateUpdate() {
 
 
 void firingStateUpdate() {
+
+    /*store.update();
+
+    if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
+    pyro.update();
+
     adc.writeRegister(CONFIG_READ_LC);
     adc.requestReading();
 
@@ -118,7 +153,7 @@ void firingStateUpdate() {
     if (recordingCanceled) {
         sysState = FINISHED;
         Serial.println("Entering finished state");
-    }
+    }*/
 }
 
 
@@ -158,6 +193,8 @@ void setup() {
     pyro.setup();
     store.setup();
     radio.setup();
+
+    attachInterrupt(adc.drdy, dataReady, FALLING);
 
     delay(250);
 }
