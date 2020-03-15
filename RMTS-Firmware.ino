@@ -36,20 +36,16 @@ void dataReady() {
         return;
     }
     if (forceReq) {
-        Serial.print("Load cell: ");
-        Serial.println(adc.getReading());
-        //store.addForce(adc.getReading());
-        //store.addTime(millis() - firingStateStarted);
+        store.addForce(adc.getReading());
+        store.addTime(millis() - firingStateStarted);
         forceReq = false;
-        adc.writeRegister(CONFIG_READ_DUCER_SETUP);
+        adc.writeRegister(CONFIG_READ_DUCER);
         adc.requestReading();
     } else {
-        Serial.print("Ducer: ");
-        Serial.println(adc.getReading());
-        //store.addForce(adc.getReading());
+        store.addPressure(adc.getReading());
         forceReq = true;
-        //store.incrementFrame()
-        adc.writeRegister(CONFIG_READ_LC_SETUP);
+        store.incrementFrame();
+        adc.writeRegister(CONFIG_READ_LC);
         adc.requestReading();
     }
     sei();
@@ -117,9 +113,9 @@ void setupStateUpdate() {
 
 void firingStateUpdate() {
 
-    /*store.update();
+    store.update();
 
-    if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
+    /*if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
     pyro.update();
 
     adc.writeRegister(CONFIG_READ_LC);

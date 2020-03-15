@@ -91,6 +91,7 @@ void Storage::incrementFrame() {
 
 void Storage::update() {
     if (writing) {
+        bool old = fillingA;
         if (fillingA) {
             dataFile.write(cacheB.byteCache, NUM_FRAMES * 8); // Write B while we are filling A
         } else {
