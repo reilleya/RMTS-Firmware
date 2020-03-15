@@ -113,11 +113,11 @@ void firingStateUpdate() {
     setupPresReading = adc.waitForReading();
     store.addPressure(setupPresReading);
 
-    if (store.incrementFrame() || currentTime > recordingDuration || recordingCanceled) {
+    store.incrementFrame();
+
+    if (recordingCanceled) {
         sysState = FINISHED;
         Serial.println("Entering finished state");
-        store.dumpToSD();
-        store.processData();
     }
 }
 

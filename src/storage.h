@@ -6,7 +6,12 @@
 #define FORCE_MASK 0x000000FFFFFF0000
 #define PRES_MASK  0xFFFFFF0000000000
 
-#define NUM_FRAMES 4000
+#define NUM_FRAMES 64
+
+typedef union storageCacheUnion {
+  uint64_t cache[NUM_FRAMES];
+  char byteCache[NUM_FRAMES * 8];
+} cacheUnion;
 
 class Storage {
     public:
@@ -17,21 +22,25 @@ class Storage {
         void addTime(uint32_t time);
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
-        bool incrementFrame();
+        void incrementFrame();
         uint16_t getCurrentFrame();
 
         void processData();
         void dumpToSerial();
         uint64_t getFrame(uint16_t index);
         uint16_t getNumFrames();
-        void dumpToSD();
 
     private:
+        void writeChunk();
+
         uint8_t status;
+
         String filename;
-        uint16_t currentFrame;
-        uint64_t cache[NUM_FRAMES];
         File dataFile;
 
-        uint16_t lastFiringFrame;
+        uint16_t currentFrame;
+        uint16_t currentChunk;
+
+        cacheUnion cache;
+
 };
