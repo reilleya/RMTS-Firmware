@@ -15,5 +15,6 @@ class PyroChannel {
         uint32_t duration;
 
         bool firing;
+        bool fired;
         uint32_t startedAt;
 };

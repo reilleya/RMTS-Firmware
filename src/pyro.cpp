@@ -4,6 +4,7 @@ PyroChannel::PyroChannel(uint8_t firingPin, uint8_t continuityPin) {
     firePin = firingPin;
     contPin = continuityPin;
     firing = false;
+    fired = false;
 }
 
 void PyroChannel::setup() {
@@ -21,10 +22,13 @@ void PyroChannel::update() {
 }
 
 void PyroChannel::fire(uint32_t fireDuration) {
-    duration = fireDuration;
-    digitalWrite(firePin, HIGH);
-    startedAt = millis();
-    firing = true;
+    if (!fired) { // Never fire more than once per power-on
+        duration = fireDuration;
+        digitalWrite(firePin, HIGH);
+        startedAt = millis();
+        firing = true;
+        fired = true;
+    }
 }
 
 void PyroChannel::stopFiring() {

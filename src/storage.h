@@ -22,7 +22,7 @@ class Storage {
         void addTime(uint32_t time);
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
-        void incrementFrame();
+        bool incrementFrame();
         uint16_t getCurrentFrame();
 
         void update();
@@ -30,7 +30,7 @@ class Storage {
         void processData();
         void dumpToSerial();
         uint64_t getFrame(uint16_t index);
-        uint16_t getTotalFrames();
+        uint64_t getTotalFrames();
 
     private:
         uint8_t status;

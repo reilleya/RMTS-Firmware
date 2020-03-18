@@ -79,14 +79,16 @@ void Storage::addPressure(uint32_t pressure) {
     }
 }
 
-void Storage::incrementFrame() {
+bool Storage::incrementFrame() {
+    totalFrames++;
     currentFrame++;
     if (currentFrame == NUM_FRAMES) {
         fillingA = !fillingA;
         writing = true;
         currentFrame = 0;
+        return true;
     }
-    totalFrames++;
+    return false;
 }
 
 void Storage::update() {
@@ -113,7 +115,7 @@ uint64_t Storage::getFrame(uint16_t index) {
     return cacheA.cache[index]; // UPDATE
 }
 
-uint16_t Storage::getTotalFrames() {
+uint64_t Storage::getTotalFrames() {
     return totalFrames;
 }
 

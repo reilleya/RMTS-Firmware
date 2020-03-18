@@ -19,9 +19,10 @@ uint32_t setupPresReading = 0;
 // Error state locals
 
 // Firing state locals
-bool forceReq = true; // If false, it must have been pressure
-bool recordingCanceled = false;
-uint32_t firingStateStarted;
+bool forceReq = true; // Which kind of sensor reading the interrupt is waiting on. If false, it must have been pressure.
+bool recordingCanceled = false; // Set when the main loop gets a stop packet. Used by the interrupt to know if it should keep looping.
+bool doneRecording = false; // Set by the interrupt when it collects its final measurement.
+uint32_t firingStateStarted; // The time that the firing state was entered.
 uint32_t firingDuration;
 uint32_t recordingDuration;
 uint32_t currentTime;
@@ -44,9 +45,13 @@ void dataReady() {
     } else {
         store.addPressure(adc.getReading());
         forceReq = true;
-        store.incrementFrame();
-        adc.writeRegister(CONFIG_READ_LC);
-        adc.requestReading();
+        bool writing = store.incrementFrame();
+        if (recordingCanceled && writing) {
+            doneRecording = true;
+        } else {
+            adc.writeRegister(CONFIG_READ_LC);
+            adc.requestReading();
+        }
     }
     sei();
 }
@@ -118,21 +123,20 @@ void firingStateUpdate() {
     if (store.getTotalFrames() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
     pyro.update();
 
-    /*
     radio.update();
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
-        if (pack.type == PACKET_STOP) {
+        if (pack.type == PACKET_STOP && !recordingCanceled) {
             recordingCanceled = true;
             Serial.println("Received stop packet");
             break;
         }
     }
-
-    if (recordingCanceled) {
+    if (doneRecording) {
+        store.update(); // To ensure a final write takes place
         sysState = FINISHED;
         Serial.println("Entering finished state");
-    }*/
+    }
 }
 
 
