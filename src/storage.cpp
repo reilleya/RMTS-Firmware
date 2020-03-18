@@ -13,7 +13,6 @@ void Storage::setup() {
     SPI.setCS(SD_CS);
 
     currentFrame = 0;
-    currentChunk = 0;
 
     if (!SD.begin(SD_CS)) {
         Serial.println("Card failed, or not present");
@@ -87,6 +86,7 @@ void Storage::incrementFrame() {
         writing = true;
         currentFrame = 0;
     }
+    totalFrames++;
 }
 
 void Storage::update() {
@@ -113,8 +113,8 @@ uint64_t Storage::getFrame(uint16_t index) {
     return cacheA.cache[index]; // UPDATE
 }
 
-uint16_t Storage::getNumFrames() {
-    return 0; // UPDATE
+uint16_t Storage::getTotalFrames() {
+    return totalFrames;
 }
 
 uint16_t Storage::getCurrentFrame() {

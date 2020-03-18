@@ -115,22 +115,10 @@ void firingStateUpdate() {
 
     store.update();
 
-    /*if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
+    if (store.getTotalFrames() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
     pyro.update();
 
-    adc.writeRegister(CONFIG_READ_LC);
-    adc.requestReading();
-
-    currentTime = millis() - firingStateStarted;
-    store.addTime(currentTime);
-    if (store.getCurrentFrame() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
-    pyro.update();
-
-    setupForceReading = adc.waitForReading();
-    adc.writeRegister(CONFIG_READ_DUCER);
-    adc.requestReading();
-
-    store.addForce(setupForceReading);
+    /*
     radio.update();
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
@@ -141,11 +129,6 @@ void firingStateUpdate() {
         }
     }
 
-    setupPresReading = adc.waitForReading();
-    store.addPressure(setupPresReading);
-
-    store.incrementFrame();
-
     if (recordingCanceled) {
         sysState = FINISHED;
         Serial.println("Entering finished state");
@@ -154,7 +137,7 @@ void firingStateUpdate() {
 
 
 void finishedStateUpdate() {
-    uint64_t frame = 0;
+    /*uint64_t frame = 0;
     for(uint16_t i = resultsOffset; i < store.getNumFrames(); i += 10) {
         packet pack;
         pack.type = PACKET_RESULTS;
@@ -165,6 +148,7 @@ void finishedStateUpdate() {
     }
     resultsOffset += 1;
     if (resultsOffset == 10) resultsOffset = 0;
+    */
 }
 
 bool hasError() {

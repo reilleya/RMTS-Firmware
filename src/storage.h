@@ -30,18 +30,16 @@ class Storage {
         void processData();
         void dumpToSerial();
         uint64_t getFrame(uint16_t index);
-        uint16_t getNumFrames();
+        uint16_t getTotalFrames();
 
     private:
-        void writeChunk();
-
         uint8_t status;
 
         String filename;
         File dataFile;
 
         uint16_t currentFrame;
-        uint16_t currentChunk;
+        uint64_t totalFrames;
 
         cacheUnion cacheA;
         cacheUnion cacheB;
