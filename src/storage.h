@@ -7,11 +7,18 @@
 #define PRES_MASK  0xFFFFFF0000000000
 
 #define NUM_FRAMES 64
+#define FRAME_SIZE sizeof(uint64_t)
 
 typedef union storageCacheUnion {
   uint64_t cache[NUM_FRAMES];
-  char byteCache[NUM_FRAMES * 8];
+  char byteCache[NUM_FRAMES * FRAME_SIZE];
 } cacheUnion;
+
+typedef union storageFrameUnion {
+  uint64_t frame;
+  char bytes[8];
+} frameUnion;
+
 
 class Storage {
     public:
@@ -23,14 +30,12 @@ class Storage {
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
         bool incrementFrame();
-        uint16_t getCurrentFrame();
-
+        uint64_t getTotalFrames();
         void update();
 
-        void processData();
-        void dumpToSerial();
-        uint64_t getFrame(uint16_t index);
-        uint64_t getTotalFrames();
+        void switchToResults();
+        uint64_t getReadFrameIndex();
+        uint64_t getFrame();
 
     private:
         uint8_t status;
@@ -46,4 +51,6 @@ class Storage {
         bool fillingA = true;
 
         bool writing = false;
+
+        uint64_t resultsOffset = 0;
 };

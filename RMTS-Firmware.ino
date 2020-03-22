@@ -24,7 +24,6 @@ bool recordingCanceled = false; // Set when the main loop gets a stop packet. Us
 bool doneRecording = false; // Set by the interrupt when it collects its final measurement.
 uint32_t firingStateStarted; // The time that the firing state was entered.
 uint32_t firingDuration;
-uint32_t recordingDuration;
 uint32_t currentTime;
 
 // Results state locals
@@ -91,17 +90,8 @@ void setupStateUpdate() {
     while (radio.available() > 0) {
         packet pack = radio.readPacket();
         if (pack.type == PACKET_FIRE) {
-            recordingDuration = (uint16_t) pack.payload[0] + ((uint16_t) pack.payload[1] << 8);
             firingDuration = (uint16_t) pack.payload[2] + ((uint16_t) pack.payload[3] << 8);
-            Serial.print("Entering fire state for ");
-            Serial.print(recordingDuration);
-            Serial.print(" ms, firing for ");
-            Serial.print(firingDuration);
-            Serial.println(" ms");
-            sysState = FIRING;
-            firingStateStarted = millis();
-            adc.writeRegister(CONFIG_READ_DUCER);
-            adc.requestReading();
+            enterFiringState();
             break;
         }
         if (pack.type == PACKET_CAL_START) {
@@ -115,6 +105,15 @@ void setupStateUpdate() {
     }
 }
 
+void enterFiringState() {
+    Serial.print("Entering fire state, firing for ");
+    Serial.print(firingDuration);
+    Serial.println(" ms");
+    sysState = FIRING;
+    firingStateStarted = millis();
+    adc.writeRegister(CONFIG_READ_DUCER);
+    adc.requestReading();
+}
 
 void firingStateUpdate() {
 
@@ -132,27 +131,23 @@ void firingStateUpdate() {
             break;
         }
     }
-    if (doneRecording) {
-        store.update(); // To ensure a final write takes place
-        sysState = FINISHED;
-        Serial.println("Entering finished state");
-    }
+    if (doneRecording) enterFinishedState();
 }
 
+void enterFinishedState() {
+    sysState = FINISHED;
+    store.update(); // To ensure a final write takes place
+    store.switchToResults();
+    Serial.println("Entering finished state");
+}
 
 void finishedStateUpdate() {
-    /*uint64_t frame = 0;
-    for(uint16_t i = resultsOffset; i < store.getNumFrames(); i += 10) {
-        packet pack;
-        pack.type = PACKET_RESULTS;
-        pack.seqNum = i;
-        frame = store.getFrame(i);
-        memcpy(pack.payload, &frame, sizeof(uint64_t));
-        radio.sendPacket(pack);
-    }
-    resultsOffset += 1;
-    if (resultsOffset == 10) resultsOffset = 0;
-    */
+    packet pack;
+    pack.type = PACKET_RESULTS;
+    pack.seqNum = store.getReadFrameIndex();
+    uint64_t frame = store.getFrame();
+    memcpy(pack.payload, &frame, sizeof(uint64_t));
+    radio.sendPacket(pack);
 }
 
 bool hasError() {

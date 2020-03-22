@@ -91,34 +91,42 @@ bool Storage::incrementFrame() {
     return false;
 }
 
+uint64_t Storage::getTotalFrames() {
+    return totalFrames;
+}
+
 void Storage::update() {
     if (writing) {
-        bool old = fillingA;
         if (fillingA) {
-            dataFile.write(cacheB.byteCache, NUM_FRAMES * 8); // Write B while we are filling A
+            dataFile.write(cacheB.byteCache, NUM_FRAMES * FRAME_SIZE); // Write B while we are filling A
         } else {
-            dataFile.write(cacheA.byteCache, NUM_FRAMES * 8); // Write A while B is filling
+            dataFile.write(cacheA.byteCache, NUM_FRAMES * FRAME_SIZE); // Write A while B is filling
         }
         dataFile.flush();
         writing = false;
     }
 }
 
-void Storage::dumpToSerial() {
-    uint32_t lower = (uint32_t) cacheA.cache[currentFrame]; // UPDATE
-    uint32_t upper = (uint32_t) (cacheA.cache[currentFrame] >> 32); // UPDATE
-    Serial.print(upper, HEX);
-    Serial.println(lower, HEX);
+void Storage::switchToResults() {
+    dataFile.close();
+    dataFile = SD.open(filename.c_str(), O_RDONLY);
+    currentFrame = 0;
 }
 
-uint64_t Storage::getFrame(uint16_t index) {
-    return cacheA.cache[index]; // UPDATE
-}
-
-uint64_t Storage::getTotalFrames() {
-    return totalFrames;
-}
-
-uint16_t Storage::getCurrentFrame() {
+uint64_t Storage::getReadFrameIndex() {
     return currentFrame;
+}
+
+uint64_t Storage::getFrame() {
+    frameUnion retData;
+
+    dataFile.read(retData.bytes, FRAME_SIZE);
+    currentFrame += RESULTS_STRIDE;
+    if (currentFrame >= totalFrames) {
+        resultsOffset = (resultsOffset + 1) % RESULTS_STRIDE;
+        currentFrame = resultsOffset;
+    }
+    dataFile.seek(currentFrame * FRAME_SIZE);
+
+    return retData.frame;
 }

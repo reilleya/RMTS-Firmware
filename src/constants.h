@@ -50,3 +50,6 @@ typedef enum STATE {
 
 // The number of frames recorded at startup to tare transducers
 #define NUM_CAL_FRAMES 10
+
+// The number of packets skipped when sending results. 0->10->20 ... 1->11->21
+#define RESULTS_STRIDE 10
