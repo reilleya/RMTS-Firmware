@@ -3,12 +3,13 @@
 #include "src/storage.h"
 #include "src/radio.h"
 #include "src/constants.h"
+#include "src/blinker.h"
 
 ADS1219 adc(ADC_ADDRESS, ADC_DRDY_PIN, ADC_AMP_PIN);
 PyroChannel pyro(PYRO_FIRE_PIN, PYRO_CONT_PIN);
 Storage store;
 RadioHandler radio;
-
+Blinker status(STATUS_PIN);
 
 systemState sysState = SETUP;
 
@@ -59,6 +60,7 @@ void dataReady() {
 void setupStateUpdate() {
     if (hasError()) {
         sysState = ERROR;
+        status.setPattern(PATTERN_ERROR);
         Serial.println("Entering error state");
         return;
     }
@@ -67,6 +69,7 @@ void setupStateUpdate() {
     adc.requestReading();
 
     radio.update();
+    status.update();
 
     setupForceReading = adc.waitForReading();
 
@@ -110,6 +113,7 @@ void enterFiringState() {
     Serial.print(firingDuration);
     Serial.println(" ms");
     sysState = FIRING;
+    status.setPattern(PATTERN_OFF);
     firingStateStarted = millis();
     adc.writeRegister(CONFIG_READ_DUCER);
     adc.requestReading();
@@ -136,12 +140,14 @@ void firingStateUpdate() {
 
 void enterFinishedState() {
     sysState = FINISHED;
+    status.setPattern(PATTERN_FINISHED);
     store.update(); // To ensure a final write takes place
     store.switchToResults();
     Serial.println("Entering finished state");
 }
 
 void finishedStateUpdate() {
+    status.update();
     packet pack;
     pack.type = PACKET_RESULTS;
     pack.seqNum = store.getReadFrameIndex();
@@ -155,6 +161,8 @@ bool hasError() {
 }
 
 void errorStateUpdate() {
+    status.update();
+
     packet pack;
     pack.type = PACKET_ERROR;
     pack.seqNum = 0;
@@ -162,7 +170,7 @@ void errorStateUpdate() {
     pack.payload[1] = adc.getStatus();
     radio.sendPacket(pack);
 
-    delay(100);
+    delay(5);
 }
 
 
@@ -172,8 +180,10 @@ void setup() {
     pyro.setup();
     store.setup();
     radio.setup();
+    status.setup();
 
     attachInterrupt(adc.drdy, dataReady, FALLING);
+    status.setPattern(PATTERN_SETUP);
 
     delay(250);
 }

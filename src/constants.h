@@ -12,6 +12,7 @@
 #define SD_MISO 12
 #define SD_CS 10
 
+#define STATUS_PIN 31
 
 // States
 typedef enum STATE {
@@ -53,3 +54,9 @@ typedef enum STATE {
 
 // The number of packets skipped when sending results. 0->10->20 ... 1->11->21
 #define RESULTS_STRIDE 10
+
+// Blink Patterns
+#define PATTERN_OFF {0, 100000, 1, 0} // Indicator stays off
+#define PATTERN_SETUP {200, 2000, 2, 200} // Indicator repeats two quick blinks
+#define PATTERN_ERROR {75, 75, 1, 0} // Indicator flashes on and off rapidly
+#define PATTERN_FINISHED {750, 750, 1, 0} // Indicator flashes on and off slowly
