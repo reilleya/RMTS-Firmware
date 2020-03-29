@@ -35,6 +35,8 @@ class RadioHandler {
 
         void sendPacket(packet toSend);
 
+        void sendVersionPacket();
+
     private:
         uint8_t serialBufferIndex;
         packetUnion packetConv;

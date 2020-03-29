@@ -28,7 +28,7 @@ uint32_t firingDuration;
 uint32_t currentTime;
 
 // Results state locals
-uint16_t resultsOffset = 0;
+uint16_t resultsVersionPacketCounter = 0;
 
 void dataReady() {
     cli();
@@ -76,6 +76,8 @@ void setupStateUpdate() {
     adc.writeRegister(CONFIG_READ_DUCER_SETUP);
     adc.requestReading();
     
+    radio.sendVersionPacket();
+
     setupPresReading = adc.waitForReading();
 
     packet pack;
@@ -88,6 +90,7 @@ void setupStateUpdate() {
     pack.payload[4] = (uint8_t) (setupPresReading >> 8);
     pack.payload[5] = (uint8_t) (setupPresReading >> 16);
     pack.payload[6] = (uint8_t) pyro.getContinuity();
+    pack.payload[7] = 0;
     radio.sendPacket(pack);
 
     while (radio.available() > 0) {
@@ -154,6 +157,12 @@ void finishedStateUpdate() {
     uint64_t frame = store.getFrame();
     memcpy(pack.payload, &frame, sizeof(uint64_t));
     radio.sendPacket(pack);
+
+    resultsVersionPacketCounter++;
+    if (resultsVersionPacketCounter == RESULTS_VERSION_PERIOD) {
+        resultsVersionPacketCounter = 0;
+        radio.sendVersionPacket();
+    }
 }
 
 bool hasError() {
@@ -162,6 +171,8 @@ bool hasError() {
 
 void errorStateUpdate() {
     status.update();
+
+    radio.sendVersionPacket();
 
     packet pack;
     pack.type = PACKET_ERROR;

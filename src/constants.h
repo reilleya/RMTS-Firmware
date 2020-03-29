@@ -42,6 +42,7 @@ typedef enum STATE {
 #define PACKET_SETUP 0
 #define PACKET_ERROR 1
 #define PACKET_RESULTS 2
+#define PACKET_VERSION 3
 
 #define PACKET_FIRE 128
 #define PACKET_STOP 129
@@ -49,14 +50,20 @@ typedef enum STATE {
 #define PACKET_CAL_STOP 131
 
 
-// The number of frames recorded at startup to tare transducers
-#define NUM_CAL_FRAMES 10
+// Firing state constants
+#define NUM_CAL_FRAMES 10 // The number of frames recorded at startup to tare transducers
 
-// The number of packets skipped when sending results. 0->10->20 ... 1->11->21
-#define RESULTS_STRIDE 10
+
+// Results state constants
+#define RESULTS_STRIDE 10 // The number of packets skipped when sending results. 0->10->20 ... 1->11->21
+#define RESULTS_VERSION_PERIOD 30 // Every N frames, send a version packet
+
 
 // Blink Patterns
 #define PATTERN_OFF {0, 100000, 1, 0} // Indicator stays off
 #define PATTERN_SETUP {200, 2000, 2, 200} // Indicator repeats two quick blinks
 #define PATTERN_ERROR {75, 75, 1, 0} // Indicator flashes on and off rapidly
 #define PATTERN_FINISHED {750, 750, 1, 0} // Indicator flashes on and off slowly
+
+#define HARDWARE_VERSION 2 // This should eventually be determined by the hardware itself but use a constant for now
+#define FIRMWARE_VERSION 5 // Increment this for any firmware "release"

@@ -1,4 +1,5 @@
 #include "radio.h"
+#include "constants.h"
 
 RadioHandler::RadioHandler() {
     serialBufferIndex = 0;
@@ -84,4 +85,14 @@ void RadioHandler::sendPacket(packet toSend) {
         }
         Serial1.write(packetConv.data[i]);
     }
+}
+
+void RadioHandler::sendVersionPacket() {
+    packet pack;
+    pack.type = PACKET_VERSION;
+    pack.seqNum = 0;
+    pack.payload[0] = (uint8_t) FIRMWARE_VERSION;
+    pack.payload[1] = (uint8_t) (FIRMWARE_VERSION >> 8);
+    pack.payload[2] = (uint8_t) HARDWARE_VERSION;
+    sendPacket(pack);
 }
