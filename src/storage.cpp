@@ -123,7 +123,7 @@ uint64_t Storage::getFrame() {
     dataFile.read(retData.bytes, FRAME_SIZE);
     currentFrame += RESULTS_STRIDE;
     if (currentFrame >= totalFrames) {
-        resultsOffset = (resultsOffset + 1) % RESULTS_STRIDE;
+        resultsOffset = (resultsOffset + RESULTS_OFFSET_INCREMENT) % RESULTS_STRIDE;
         currentFrame = resultsOffset;
     }
     dataFile.seek(currentFrame * FRAME_SIZE);
