@@ -16,6 +16,7 @@ systemState sysState = SETUP;
 // Setup state locals
 uint32_t setupForceReading = 0;
 uint32_t setupPresReading = 0;
+bool extFireTriggered = false;
 
 // Error state locals
 
@@ -56,12 +57,27 @@ void dataReady() {
     sei();
 }
 
+void extFire() {
+    cli();
+    if (sysState != SETUP) {
+        sei();
+        return;
+    }
+    detachInterrupt(digitalPinToInterrupt(TRIGGER_PIN));
+    extFireTriggered = true;
+    sei();
+}
 
 void setupStateUpdate() {
     if (hasError()) {
         sysState = ERROR;
         status.setPattern(PATTERN_ERROR);
         Serial.println("Entering error state");
+        return;
+    }
+
+    if (extFireTriggered) {
+        enterFiringState();
         return;
     }
 
@@ -126,7 +142,7 @@ void firingStateUpdate() {
 
     store.update();
 
-    if (store.getTotalFrames() == NUM_CAL_FRAMES) pyro.fire(firingDuration);
+    if (store.getTotalFrames() == NUM_CAL_FRAMES && !extFireTriggered) pyro.fire(firingDuration);
     pyro.update();
 
     radio.update();
@@ -194,6 +210,10 @@ void setup() {
     status.setup();
 
     attachInterrupt(adc.drdy, dataReady, FALLING);
+
+    pinMode(TRIGGER_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), extFire, RISING);
+
     status.setPattern(PATTERN_SETUP);
 
     delay(250);
