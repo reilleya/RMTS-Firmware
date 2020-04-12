@@ -27,6 +27,10 @@ bool doneRecording = false; // Set by the interrupt when it collects its final m
 uint32_t firingStateStarted; // The time that the firing state was entered.
 uint32_t firingDuration;
 uint32_t currentTime;
+bool firingSkipWriting = true; // This is kind of a bandaid. The first value read from the ADC is wrong so we don't bother writing it.
+bool firingWritingSD = false;
+uint32_t firingForceReading;
+uint32_t firingPressureReading;
 
 // Results state locals
 uint16_t resultsVersionPacketCounter = 0;
@@ -38,18 +42,27 @@ void dataReady() {
         return;
     }
     if (forceReq) {
-        store.addForce(adc.getReading());
-        store.addTime(millis() - firingStateStarted);
+        firingForceReading = adc.getReading();
+        if (!firingSkipWriting) {
+            store.addForce(firingForceReading);
+            store.addTime(millis() - firingStateStarted);
+        }
         forceReq = false;
         adc.writeRegister(CONFIG_READ_DUCER);
         adc.requestReading();
     } else {
-        store.addPressure(adc.getReading());
-        forceReq = true;
-        bool writing = store.incrementFrame();
-        if (recordingCanceled && writing) {
+        firingPressureReading = adc.getReading();
+        if (!firingSkipWriting) {
+            store.addPressure(firingPressureReading);
+            firingWritingSD = store.incrementFrame();
+        } else {
+            firingWritingSD = false;
+            firingSkipWriting = false;
+        }
+        if (recordingCanceled && firingWritingSD) {
             doneRecording = true;
         } else {
+            forceReq = true;
             adc.writeRegister(CONFIG_READ_LC);
             adc.requestReading();
         }
