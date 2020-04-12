@@ -97,13 +97,13 @@ uint64_t Storage::getTotalFrames() {
 
 void Storage::update() {
     if (writing) {
+        writing = false; // Set this now so we don't accidentally ignore a write that is requested during this one
         if (fillingA) {
             dataFile.write(cacheB.byteCache, NUM_FRAMES * FRAME_SIZE); // Write B while we are filling A
         } else {
             dataFile.write(cacheA.byteCache, NUM_FRAMES * FRAME_SIZE); // Write A while B is filling
         }
         dataFile.flush();
-        writing = false;
     }
 }
 

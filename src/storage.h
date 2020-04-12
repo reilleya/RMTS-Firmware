@@ -50,7 +50,7 @@ class Storage {
         cacheUnion cacheB;
         bool fillingA = true;
 
-        bool writing = false;
+        volatile bool writing = false;
 
         uint64_t resultsOffset = 0;
 };
