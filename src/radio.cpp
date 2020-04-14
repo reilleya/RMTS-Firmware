@@ -34,7 +34,7 @@ void RadioHandler::update() {
                 inPacket = false;
             }
         }
-        escape = b == RADIO_ESCAPE;
+        escape = b == RADIO_ESCAPE && !escape;
     }
 }
 
