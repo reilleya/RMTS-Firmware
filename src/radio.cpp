@@ -3,7 +3,6 @@
 
 RadioHandler::RadioHandler() {
     serialBufferIndex = 0;
-    packetBufferIndex = 0;   
 }
 
 void RadioHandler::setup() {
@@ -27,8 +26,7 @@ void RadioHandler::update() {
             if (serialBufferIndex == sizeof(packet)) {
                 if (validatePacket(&packetConv.pack)) {
                     serialBufferIndex = 0;
-                    packetBuffer[packetBufferIndex] = packetConv.pack;
-                    packetBufferIndex++;
+                    if (packetBuffer.writable()) packetBuffer.write(packetConv.pack);
                 }
                 serialBufferIndex = 0;
                 inPacket = false;
@@ -41,7 +39,7 @@ void RadioHandler::update() {
 void RadioHandler::resetBuffers() {
     Serial1.clear();
     serialBufferIndex = 0;
-    resetPacketBuffer();
+    packetBuffer.reset();
 }
 
 bool RadioHandler::validatePacket(packet* testPack) {
@@ -53,20 +51,11 @@ bool RadioHandler::validatePacket(packet* testPack) {
 }
 
 uint8_t RadioHandler::available() {
-    return packetBufferIndex;
+    return packetBuffer.available();
 }
 
 packet RadioHandler::readPacket() {
-    packet retPacket = packetBuffer[0];
-    for (uint8_t i = 0; i < packetBufferIndex - 1; i++) {
-        packetBuffer[i] = packetBuffer[i + 1];
-    }
-    packetBufferIndex--;
-    return retPacket;
-}
-
-void RadioHandler::resetPacketBuffer() {
-    packetBufferIndex = 0;
+    return packetBuffer.read();
 }
 
 void RadioHandler::sendPacket(packet toSend) {

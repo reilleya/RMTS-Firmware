@@ -1,8 +1,7 @@
 #include <arduino.h>
+#include "circularBuffer.h"
 
 #define PACKET_PAYLOAD_LENGTH 8
-
-#define PACKET_BUFFER_LENGTH 8
 
 #define RADIO_PREABLE_0 0xAA
 #define RADIO_PREABLE_1 0xBB
@@ -31,7 +30,6 @@ class RadioHandler {
 
         uint8_t available();
         packet readPacket();
-        void resetPacketBuffer();
 
         void sendPacket(packet toSend);
 
@@ -41,8 +39,7 @@ class RadioHandler {
         uint8_t serialBufferIndex;
         packetUnion packetConv;
 
-        packet packetBuffer[PACKET_BUFFER_LENGTH];
-        uint8_t packetBufferIndex;
+        CircularBuffer<radioPacket> packetBuffer;
 
         // Packet parser state
         bool escape = false;

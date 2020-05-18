@@ -122,7 +122,7 @@ void setupStateUpdate() {
     pack.payload[7] = 0;
     radio.sendPacket(pack);
 
-    while (radio.available() > 0) {
+    while (radio.available()) {
         packet pack = radio.readPacket();
         if (pack.type == PACKET_FIRE) {
             firingDuration = (uint16_t) pack.payload[2] + ((uint16_t) pack.payload[3] << 8);
@@ -149,6 +149,7 @@ void enterFiringState() {
     firingStateStarted = millis();
     adc.writeRegister(CONFIG_READ_DUCER);
     adc.requestReading();
+    radio.resetBuffers();
 }
 
 void firingStateUpdate() {
@@ -159,7 +160,7 @@ void firingStateUpdate() {
     pyro.update();
 
     radio.update();
-    while (radio.available() > 0) {
+    while (radio.available()) {
         packet pack = radio.readPacket();
         if (pack.type == PACKET_STOP && !recordingCanceled) {
             recordingCanceled = true;
