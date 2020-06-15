@@ -216,9 +216,9 @@ void errorStateUpdate() {
 
 
 void setup() {
+    pyro.setup();
     Serial.begin(9600);
     adc.setup();
-    pyro.setup();
     store.setup();
     radio.setup();
     status.setup();
