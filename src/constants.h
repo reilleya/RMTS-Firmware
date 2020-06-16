@@ -62,6 +62,7 @@ typedef enum STATE {
 #define PACKET_ERROR 1
 #define PACKET_RESULTS 2
 #define PACKET_VERSION 3
+#define PACKET_FIRING 4
 
 #define PACKET_FIRE 128
 #define PACKET_STOP 129

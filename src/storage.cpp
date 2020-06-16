@@ -3,6 +3,9 @@
 
 Storage::Storage() {
     status = ERROR_SD_UNINITIALIZED;
+    lastForce = 0;
+    lastPressure = 0;
+    lastTime = 0;
 }
 
 
@@ -42,6 +45,7 @@ uint8_t Storage::getStatus() {
 }
 
 void Storage::addTime(uint32_t time) {
+    lastTime = time;
     uint64_t conv = (uint64_t) time;
     conv &= TIME_MASK;
     if (fillingA) {
@@ -54,6 +58,7 @@ void Storage::addTime(uint32_t time) {
 }
 
 void Storage::addForce(uint32_t force) {
+    lastForce = force;
     uint64_t conv = (uint64_t) force;
     conv <<= 16;
     conv &= FORCE_MASK; // Drop any value in the MSB of the word
@@ -67,6 +72,7 @@ void Storage::addForce(uint32_t force) {
 }
 
 void Storage::addPressure(uint32_t pressure) {
+    lastPressure = pressure;
     uint64_t conv = (uint64_t) pressure;
     conv <<= 40;
     conv &= PRES_MASK; // Shouldn't be required because the shift pushes it to the MSB
@@ -77,6 +83,18 @@ void Storage::addPressure(uint32_t pressure) {
         cacheB.cache[currentFrame] &= ~PRES_MASK; // Zero out the pressure section
         cacheB.cache[currentFrame] |= conv;
     }
+}
+
+uint32_t Storage::getLastTime() {
+    return lastTime;
+}
+
+uint32_t Storage::getLastForce() {
+    return lastForce;
+}
+
+uint32_t Storage::getLastPressure() {
+    return lastPressure;
 }
 
 bool Storage::incrementFrame() {

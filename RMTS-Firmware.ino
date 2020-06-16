@@ -168,7 +168,28 @@ void firingStateUpdate() {
             break;
         }
     }
-    if (doneRecording) enterFinishedState();
+    if (doneRecording) {
+        enterFinishedState();
+        return;
+    }
+
+    uint32_t lastTime = store.getLastTime();
+    uint32_t lastForce = store.getLastForce();
+    uint32_t lastPressure = store.getLastPressure();
+
+    packet pack;
+    pack.type = PACKET_FIRING;
+    pack.seqNum = 0;
+    pack.payload[0] = (uint8_t) lastForce;
+    pack.payload[1] = (uint8_t) (lastForce >> 8);
+    pack.payload[2] = (uint8_t) (lastForce >> 16);
+    pack.payload[3] = (uint8_t) lastPressure;
+    pack.payload[4] = (uint8_t) (lastPressure >> 8);
+    pack.payload[5] = (uint8_t) (lastPressure >> 16);
+    pack.payload[6] = (uint8_t) lastTime;
+    pack.payload[7] = (uint8_t) (((uint8_t) (lastTime >> 8)) << 1) + pyro.getContinuity();
+
+    radio.sendPacket(pack);
 }
 
 void enterFinishedState() {

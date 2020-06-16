@@ -29,6 +29,9 @@ class Storage {
         void addTime(uint32_t time);
         void addForce(uint32_t force);
         void addPressure(uint32_t pressure);
+        uint32_t getLastTime();
+        uint32_t getLastForce();
+        uint32_t getLastPressure();
         bool incrementFrame();
         uint64_t getTotalFrames();
         void update();
@@ -45,6 +48,10 @@ class Storage {
 
         uint16_t currentFrame;
         uint64_t totalFrames;
+
+        uint32_t lastTime;
+        uint32_t lastForce;
+        uint32_t lastPressure;
 
         cacheUnion cacheA;
         cacheUnion cacheB;
