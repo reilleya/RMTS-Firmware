@@ -23,7 +23,7 @@ void Storage::setup() {
         return;
     }
     for (uint8_t fileNum = 0; fileNum <= 255; fileNum++) {
-        filename = String(fileNum) + ".log";
+        filename = String(fileNum) + ".mfl";
         if (!SD.exists(filename.c_str())) {
             break;
         }
