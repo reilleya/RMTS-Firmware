@@ -145,7 +145,8 @@ void enterFiringState() {
     Serial.print(firingDuration);
     Serial.println(" ms");
     sysState = FIRING;
-    status.setPattern(PATTERN_OFF);
+    status.setPattern(PATTERN_ON);
+    status.update();
     firingStateStarted = millis();
     adc.writeRegister(CONFIG_READ_DUCER);
     adc.requestReading();
@@ -155,6 +156,7 @@ void enterFiringState() {
 void firingStateUpdate() {
 
     store.update();
+    status.update();
 
     if (store.getTotalFrames() == NUM_CAL_FRAMES && !extFireTriggered) pyro.fire(firingDuration);
     pyro.update();

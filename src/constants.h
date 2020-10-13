@@ -97,6 +97,8 @@ typedef enum STATE {
 
 // Indicator stays off
 #define PATTERN_OFF {0, 100000, 1, 0}
+// Indicator stays on
+#define PATTERN_ON {100000, 0, 1, 0}
 // Indicator repeats two quick blinks
 #define PATTERN_SETUP {200, 2000, 2, 200}
 // Indicator flashes on and off rapidly
