@@ -237,38 +237,18 @@ void errorStateUpdate() {
     delay(5);
 }
 
+uint32_t firings = 0;
 
 void setup() {
-    pyro.setup();
-    Serial.begin(9600);
-    adc.setup();
-    store.setup();
-    radio.setup();
-    status.setup();
-
-    attachInterrupt(adc.drdy, dataReady, FALLING);
-
-    pinMode(TRIGGER_PIN, INPUT);
-    attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), extFire, RISING);
-
-    status.setPattern(PATTERN_SETUP);
-
-    delay(250);
+    Serial1.begin(9600);
+    pinMode(PYRO_FIRE_PIN, OUTPUT);
 }
 
 void loop() {
-    switch (sysState) {
-        case SETUP:
-            setupStateUpdate();
-            break;
-        case FIRING:
-            firingStateUpdate();
-            break;
-        case FINISHED:
-            finishedStateUpdate();
-            break;
-        case ERROR:
-            errorStateUpdate();
-            break;
-    }
+    digitalWrite(PYRO_FIRE_PIN, HIGH);
+    delay(3000);
+    firings++;
+    digitalWrite(PYRO_FIRE_PIN, LOW);
+    delay(30000);
+    Serial1.println(firings);
 }
