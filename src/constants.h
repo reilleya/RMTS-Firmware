@@ -112,6 +112,6 @@ typedef enum STATE {
 // ====================================================================================================================
 
 // This should eventually be determined by the hardware itself but use a constant for now
-#define HARDWARE_VERSION 2
+#define HARDWARE_VERSION 3
 // Increment this for any firmware "release"
 #define FIRMWARE_VERSION 5
